@@ -18,15 +18,12 @@ package com.github.leonardoxh.ywheaterdata;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.text.TextUtils;
-import android.util.Pair;
 
 import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
 
-import java.util.HashMap;
-import java.util.Map;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -37,6 +34,8 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Executors;
 
 public final class YahooWheaterClient {
