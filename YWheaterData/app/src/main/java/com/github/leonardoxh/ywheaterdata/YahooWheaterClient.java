@@ -39,24 +39,24 @@ import java.util.concurrent.Executors;
 
 public class YahooWheaterClient {
 
-  private final String mWheaterUnit;
-  private final XmlPullParserFactory mPullParserFactory;
-  private final Callbacks mCallbacks;
-  private final String mAppId;
+  private final String wheaterUnit;
+  private final XmlPullParserFactory pullParserFactory;
+  private final Callbacks callbacks;
+  private final String appId;
 
   public YahooWheaterClient(String appId, String wheaterUnit, Callbacks callback)
       throws XmlPullParserException {
-    mPullParserFactory = XmlPullParserFactory.newInstance();
-    mPullParserFactory.setNamespaceAware(true);
-    mWheaterUnit = wheaterUnit;
-    mCallbacks = callback;
-    mAppId = appId;
+    this.pullParserFactory = XmlPullParserFactory.newInstance();
+    this.pullParserFactory.setNamespaceAware(true);
+    this.wheaterUnit = wheaterUnit;
+    this.callbacks = callback;
+    this.appId = appId;
   }
 
   public void wheaterForWoied(String woeid) {
     OkHttpClient client = new OkHttpClient();
     Request.Builder request = new Request.Builder();
-    request.url(buildWheaterQueryUrl(woeid, mWheaterUnit));
+    request.url(buildWheaterQueryUrl(woeid, wheaterUnit));
     client.newCall(request.get().build()).enqueue(new OnWoeidResponseListener());
   }
 
@@ -79,7 +79,7 @@ public class YahooWheaterClient {
   public void locationInfoForLocation(Location location) {
     OkHttpClient client = new OkHttpClient();
     Request.Builder request = new Request.Builder();
-    request.url(buildUrl(mAppId, location));
+    request.url(buildUrl(appId, location));
     client.newCall(request.get().build()).enqueue(new OnLocationResponseListener());
   }
 
@@ -93,7 +93,7 @@ public class YahooWheaterClient {
   class OnLocationResponseListener implements Callback {
 
     @Override public void onFailure(Request request, IOException e) {
-      mCallbacks.locationInfoError();
+      callbacks.locationInfoError();
     }
 
     @Override public void onResponse(Response response) throws IOException {
@@ -101,7 +101,7 @@ public class YahooWheaterClient {
         new LocationInfoParserTask().executeOnExecutor(Executors.newCachedThreadPool(),
             response.body().string());
       } else {
-        mCallbacks.locationInfoError();
+        callbacks.locationInfoError();
       }
     }
 
@@ -110,7 +110,7 @@ public class YahooWheaterClient {
   class OnWoeidResponseListener implements Callback {
 
     @Override public void onFailure(Request request, IOException e) {
-      mCallbacks.wheaterDataError();
+      callbacks.wheaterDataError();
     }
 
     @Override public void onResponse(Response response) throws IOException {
@@ -118,7 +118,7 @@ public class YahooWheaterClient {
         new WoeidParserTask().executeOnExecutor(Executors.newCachedThreadPool(),
             response.body().string());
       } else {
-        mCallbacks.wheaterDataError();
+        callbacks.wheaterDataError();
       }
     }
 
@@ -126,8 +126,8 @@ public class YahooWheaterClient {
 
   static class LocationInfo {
 
-    public List<String> woeids = new ArrayList<>();
-    public String town;
+    List<String> woeids = new ArrayList<>();
+    String town;
 
   }
 
@@ -139,7 +139,7 @@ public class YahooWheaterClient {
       String primaryWoeid = null;
       List<Pair<String, String>> alternativeWoeids = new ArrayList<>();
       try {
-        XmlPullParser xpp = mPullParserFactory.newPullParser();
+        XmlPullParser xpp = pullParserFactory.newPullParser();
         xpp.setInput(new StringReader(content));
         boolean inWoe = false;
         boolean inTown = false;
@@ -149,7 +149,7 @@ public class YahooWheaterClient {
           if (eventType == XmlPullParser.START_TAG &&
               "woeid".equals(tagName)) {
             inWoe = true;
-          } else if(eventType == XmlPullParser.TEXT && inWoe) {
+          } else if (eventType == XmlPullParser.TEXT && inWoe) {
             primaryWoeid = xpp.getText();
           }
           if (eventType == XmlPullParser.START_TAG &&
@@ -159,14 +159,14 @@ public class YahooWheaterClient {
               if ("type".equals(attrName) &&
                   "Town".equals(xpp.getAttributeValue(i))) {
                 inTown = true;
-              } else if("woeid".equals(attrName)) {
+              } else if ("woeid".equals(attrName)) {
                 String woeid = xpp.getAttributeValue(i);
                 if (!TextUtils.isEmpty(woeid)) {
                   alternativeWoeids.add(new Pair<>(tagName, woeid));
                 }
               }
             }
-          } else if(eventType == XmlPullParser.TEXT && inTown) {
+          } else if (eventType == XmlPullParser.TEXT && inTown) {
             locationInfo.town = xpp.getText();
           }
           if (eventType == XmlPullParser.END_TAG) {
@@ -201,9 +201,9 @@ public class YahooWheaterClient {
 
     @Override protected void onPostExecute(LocationInfo locationInfo) {
       if (locationInfo == null) {
-        mCallbacks.locationInfoError();
+        callbacks.locationInfoError();
       } else {
-        mCallbacks.locationInfoReceived(locationInfo);
+        callbacks.locationInfoReceived(locationInfo);
       }
     }
 
@@ -215,7 +215,7 @@ public class YahooWheaterClient {
       String content = strings[0];
       WheaterData data = new WheaterData();
       try {
-        XmlPullParser xpp = mPullParserFactory.newPullParser();
+        XmlPullParser xpp = pullParserFactory.newPullParser();
         xpp.setInput(new StringReader(content));
         boolean hasTodayForecast = false;
         int eventType = xpp.getEventType();
@@ -231,7 +231,7 @@ public class YahooWheaterClient {
                 data.setConditionText(xpp.getAttributeValue(i));
               }
             }
-          } else if(eventType == XmlPullParser.START_TAG
+          } else if (eventType == XmlPullParser.START_TAG
               && "forecast".equals(xpp.getName())
               && !hasTodayForecast) {
             hasTodayForecast = true;
@@ -271,15 +271,15 @@ public class YahooWheaterClient {
         e.printStackTrace();
         return null;
       }
-      data.setWheaterUnit(mWheaterUnit);
+      data.setWheaterUnit(wheaterUnit);
       return data;
     }
 
     @Override protected void onPostExecute(WheaterData wheaterData) {
       if (wheaterData == null) {
-        mCallbacks.wheaterDataError();
+        callbacks.wheaterDataError();
       } else {
-        mCallbacks.wheaterDataReceived(wheaterData);
+        callbacks.wheaterDataReceived(wheaterData);
       }
     }
 
