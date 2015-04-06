@@ -27,6 +27,7 @@ import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
 
+import java.net.HttpURLConnection;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -35,8 +36,6 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -119,10 +118,14 @@ public final class YahooWheaterClient {
     return okHttpClient;
   }
 
-  public void wheaterForWoied(String woeid) {
+  private void wheaterForWoied(LocationInfo locationInfo) {
+    if (TextUtils.isEmpty(locationInfo.getPrimaryWoeid())) {
+      callbacks.wheaterDataError(locationInfo);
+      return;
+    }
     Request.Builder request = new Request.Builder();
-    request.url(buildWheaterQueryUrl(woeid, wheaterUnit));
-    okHttpClient.newCall(request.get().build()).enqueue(new OnWoeidResponseListener());
+    request.url(buildWheaterQueryUrl(locationInfo.getPrimaryWoeid(), wheaterUnit));
+    okHttpClient.newCall(request.get().build()).enqueue(new OnWoeidResponseListener(locationInfo));
   }
 
   private static String buildWheaterQueryUrl(String woeid, char wheaterUnit) {
@@ -151,7 +154,7 @@ public final class YahooWheaterClient {
   class OnLocationResponseListener implements Callback {
 
     @Override public void onFailure(Request request, IOException e) {
-      callbacks.locationInfoError();
+      callbacks.wheaterDataError(null);
     }
 
     @Override public void onResponse(Response response) throws IOException {
@@ -159,7 +162,7 @@ public final class YahooWheaterClient {
         new LocationInfoParserTask().executeOnExecutor(DEFAULT_EXECUTOR,
             response.body().string());
       } else {
-        callbacks.locationInfoError();
+        callbacks.wheaterDataError(null);
       }
     }
 
@@ -167,25 +170,24 @@ public final class YahooWheaterClient {
 
   class OnWoeidResponseListener implements Callback {
 
+    final LocationInfo locationInfo;
+
+    OnWoeidResponseListener(LocationInfo locationInfo) {
+      this.locationInfo = locationInfo;
+    }
+
     @Override public void onFailure(Request request, IOException e) {
-      callbacks.wheaterDataError();
+      callbacks.wheaterDataError(locationInfo);
     }
 
     @Override public void onResponse(Response response) throws IOException {
-      if (response.isSuccessful()) {
-        new WoeidParserTask().executeOnExecutor(DEFAULT_EXECUTOR,
+      if (response.code() == HttpURLConnection.HTTP_OK) {
+        new WoeidParserTask(locationInfo).executeOnExecutor(DEFAULT_EXECUTOR,
             response.body().string());
       } else {
-        callbacks.wheaterDataError();
+        callbacks.wheaterDataError(locationInfo);
       }
     }
-
-  }
-
-  static class LocationInfo {
-
-    List<String> woeids = new ArrayList<>(); //TODO - Find the best woeid ?
-    String town;
 
   }
 
@@ -225,7 +227,7 @@ public final class YahooWheaterClient {
               }
             }
           } else if (eventType == XmlPullParser.TEXT && inTown) {
-            locationInfo.town = xpp.getText();
+            locationInfo.setTown(xpp.getText());
           }
           if (eventType == XmlPullParser.END_TAG) {
             inWoe = false;
@@ -234,15 +236,12 @@ public final class YahooWheaterClient {
           eventType = xpp.next();
         }
         if (!TextUtils.isEmpty(primaryWoeid)) {
-          locationInfo.woeids.add(primaryWoeid);
+          locationInfo.setPrimaryWoeid(primaryWoeid);
         }
         for (Map.Entry<String, String> entry : alternativeWoeids.entrySet()) {
-          locationInfo.woeids.add(entry.getValue());
+          locationInfo.addWoeid(entry.getValue());
         }
-        if (!locationInfo.woeids.isEmpty()) {
-          return locationInfo;
-        }
-        return null;
+        return locationInfo;
       } catch (IOException | XmlPullParserException e) {
         e.printStackTrace();
         return null;
@@ -251,15 +250,21 @@ public final class YahooWheaterClient {
 
     @Override protected void onPostExecute(LocationInfo locationInfo) {
       if (locationInfo == null) {
-        callbacks.locationInfoError();
+        callbacks.wheaterDataError(null);
       } else {
-        callbacks.locationInfoReceived(locationInfo); //TODO - continue the request
+        wheaterForWoied(locationInfo);
       }
     }
 
   }
 
   class WoeidParserTask extends AsyncTask<String, Void, WheaterData> {
+
+    final LocationInfo locationInfo;
+
+    WoeidParserTask(LocationInfo locationInfo) {
+      this.locationInfo = locationInfo;
+    }
 
     @Override protected WheaterData doInBackground(String... strings) {
       String content = strings[0];
@@ -327,9 +332,9 @@ public final class YahooWheaterClient {
 
     @Override protected void onPostExecute(WheaterData wheaterData) {
       if (wheaterData == null) {
-        callbacks.wheaterDataError();
+        callbacks.wheaterDataError(locationInfo);
       } else {
-        callbacks.wheaterDataReceived(wheaterData);
+        callbacks.wheaterDataReceived(locationInfo, wheaterData);
       }
     }
 
@@ -337,10 +342,8 @@ public final class YahooWheaterClient {
 
   public interface Callbacks {
 
-    void wheaterDataReceived(WheaterData data);
-    void wheaterDataError();
-    void locationInfoReceived(LocationInfo info);
-    void locationInfoError();
+    void wheaterDataReceived(LocationInfo locationInfo, WheaterData data);
+    void wheaterDataError(LocationInfo locationInfo);
 
   }
 
