@@ -154,7 +154,7 @@ public class YahooWheaterClient {
           }
           if (eventType == XmlPullParser.START_TAG &&
               (tagName.startsWith("locality") || tagName.startsWith("admin"))) {
-            for(int i = xpp.getAttributeCount() - 1; i >=0; i--) {
+            for (int i = xpp.getAttributeCount() - 1; i >=0; i--) {
               String attrName = xpp.getAttributeName(i);
               if ("type".equals(attrName) &&
                   "Town".equals(xpp.getAttributeValue(i))) {
@@ -186,7 +186,7 @@ public class YahooWheaterClient {
           }
 
         });
-        for(Pair<String, String> pair : alternativeWoeids) {
+        for (Pair<String, String> pair : alternativeWoeids) {
           locationInfo.woeids.add(pair.second);
         }
         if (!locationInfo.woeids.isEmpty()) {
