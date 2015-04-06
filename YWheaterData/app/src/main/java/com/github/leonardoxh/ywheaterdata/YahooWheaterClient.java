@@ -75,18 +75,21 @@ public final class YahooWheaterClient {
     }
   }
 
-  private static String getAppId(Context context) {
-    try {
-      ApplicationInfo ai = context.getPackageManager()
-          .getApplicationInfo(context.getPackageName(), PackageManager.GET_META_DATA);
-      String apiKey = ai.metaData.getString(WHEATER_METADATA);
-      if(TextUtils.isEmpty(apiKey)) {
-        throw new RuntimeException("API Key == null");
-      }
-      return apiKey;
-    } catch (PackageManager.NameNotFoundException e) {
-      throw new RuntimeException("Package name not found, are the app installed?", e);
+  public void wheaterForWoied(LocationInfo locationInfo) {
+    if (TextUtils.isEmpty(locationInfo.getPrimaryWoeid())) {
+      callbacks.wheaterDataError(locationInfo);
+      return;
     }
+    Request.Builder request = new Request.Builder();
+    request.url(buildWheaterQueryUrl(locationInfo.getPrimaryWoeid(), wheaterUnit));
+    okHttpClient.newCall(request.get().build()).enqueue(new OnWoeidResponseListener(locationInfo));
+  }
+
+  public void locationInfoForLocation(Location location, Callbacks callbacks) {
+    this.callbacks = callbacks;
+    Request.Builder request = new Request.Builder();
+    request.url(buildUrl(appId, location));
+    okHttpClient.newCall(request.get().build()).enqueue(new OnLocationResponseListener());
   }
 
   public void setWheaterUnit(char wheaterUnit) {
@@ -99,6 +102,20 @@ public final class YahooWheaterClient {
 
   public void setOkHttpClient(OkHttpClient okHttpClient) {
     this.okHttpClient = okHttpClient;
+  }
+
+  private static String getAppId(Context context) {
+    try {
+      ApplicationInfo ai = context.getPackageManager()
+          .getApplicationInfo(context.getPackageName(), PackageManager.GET_META_DATA);
+      String apiKey = ai.metaData.getString(WHEATER_METADATA);
+      if(TextUtils.isEmpty(apiKey)) {
+        throw new RuntimeException("API Key == null");
+      }
+      return apiKey;
+    } catch (PackageManager.NameNotFoundException e) {
+      throw new RuntimeException("Package name not found, are the app installed?", e);
+    }
   }
 
   private static XmlPullParserFactory defaultXmlPullParser() {
@@ -118,16 +135,6 @@ public final class YahooWheaterClient {
     return okHttpClient;
   }
 
-  private void wheaterForWoied(LocationInfo locationInfo) {
-    if (TextUtils.isEmpty(locationInfo.getPrimaryWoeid())) {
-      callbacks.wheaterDataError(locationInfo);
-      return;
-    }
-    Request.Builder request = new Request.Builder();
-    request.url(buildWheaterQueryUrl(locationInfo.getPrimaryWoeid(), wheaterUnit));
-    okHttpClient.newCall(request.get().build()).enqueue(new OnWoeidResponseListener(locationInfo));
-  }
-
   private static String buildWheaterQueryUrl(String woeid, char wheaterUnit) {
     return "http://weather.yahooapis.com/forecastrss?w=" + woeid + "&u=" + wheaterUnit;
   }
@@ -142,13 +149,6 @@ public final class YahooWheaterClient {
     sb.append("?appid=");
     sb.append(appId);
     return sb.toString();
-  }
-
-  public void locationInfoForLocation(Location location, Callbacks callbacks) {
-    this.callbacks = callbacks;
-    Request.Builder request = new Request.Builder();
-    request.url(buildUrl(appId, location));
-    okHttpClient.newCall(request.get().build()).enqueue(new OnLocationResponseListener());
   }
 
   class OnLocationResponseListener implements Callback {
