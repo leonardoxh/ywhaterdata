@@ -58,18 +58,20 @@ public final class YahooWheaterClient {
   private static String appId;
   private Callbacks callbacks;
 
-  public YahooWheaterClient() { }
-
   public YahooWheaterClient(String appId) {
-    YahooWheaterClient.appId = appId;
+    init(appId);
   }
 
   public YahooWheaterClient(Context context) {
-    appId = getAppId(context);
+    init(context);
   }
 
   public static void init(Context context) {
-    appId = getAppId(context);
+    init(getAppId(context));
+  }
+
+  public static void init(String appId) {
+    YahooWheaterClient.appId = appId;
   }
 
   private static String getAppId(Context context) {
