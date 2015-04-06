@@ -65,20 +65,25 @@ public final class YahooWheaterClient {
   }
 
   public YahooWheaterClient(Context context) {
-    try {
-      ApplicationInfo ai = context.getPackageManager()
-          .getApplicationInfo(context.getPackageName(), PackageManager.GET_META_DATA);
-      appId = ai.metaData.getString(WHEATER_METADATA);
-      if(TextUtils.isEmpty(appId)) {
-        throw new RuntimeException("API Key == null");
-      }
-    } catch(PackageManager.NameNotFoundException e) {
-      throw new RuntimeException("Package name not found, are the app installed?", e);
-    }
+    appId = getAppId(context);
   }
 
   public static void init(Context context) {
-    new YahooWheaterClient(context);
+    appId = getAppId(context);
+  }
+
+  private static String getAppId(Context context) {
+    try {
+      ApplicationInfo ai = context.getPackageManager()
+          .getApplicationInfo(context.getPackageName(), PackageManager.GET_META_DATA);
+      String apiKey = ai.metaData.getString(WHEATER_METADATA);
+      if(TextUtils.isEmpty(apiKey)) {
+        throw new RuntimeException("API Key == null");
+      }
+      return apiKey;
+    } catch(PackageManager.NameNotFoundException e) {
+      throw new RuntimeException("Package name not found, are the app installed?", e);
+    }
   }
 
   public void setAppId(String appId) {
