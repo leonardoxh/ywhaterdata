@@ -15,6 +15,9 @@
  */
 package com.github.leonardoxh.ywheaterdata;
 
+import android.content.Context;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.text.TextUtils;
@@ -46,20 +49,47 @@ public final class YahooWheaterClient {
   private static final long DEFAULT_CONNECTION_TIMEOUT = 20L;
   private static final TimeUnit DEFAULT_CONNECTION_TIMEOUT_UNIT = TimeUnit.SECONDS;
   private static final Executor DEFAULT_EXECUTOR = Executors.newCachedThreadPool();
+  private static final XmlPullParserFactory DEFAULT_PULL_PARSER = defaultXmlPullParser();
+  private static final String WHEATER_METADATA = "com.github.leonardoxh.wheaterdata.YAHOO_API_KEY";
 
   private String wheaterUnit = WHEATER_UNIT_CELCIUS;
   private OkHttpClient okHttpClient = defaultOkHttpClient();
-  private final XmlPullParserFactory pullParserFactory = defaultXmlPullParser();
+  private String appId;
   private final Callbacks callbacks;
-  private final String appId;
 
   public YahooWheaterClient(String appId, Callbacks callback) {
     this.callbacks = callback;
     this.appId = appId;
   }
 
+  public YahooWheaterClient(Context context, Callbacks callbacks) {
+    try {
+      ApplicationInfo ai = context.getPackageManager()
+          .getApplicationInfo(context.getPackageName(), PackageManager.GET_META_DATA);
+      appId = ai.metaData.getString(WHEATER_METADATA);
+      if(TextUtils.isEmpty(appId)) {
+        throw new RuntimeException("API Key == null");
+      }
+      this.callbacks = callbacks;
+    } catch(PackageManager.NameNotFoundException e) {
+      throw new RuntimeException("Package name not found, are the app installed?", e);
+    }
+  }
+
+  public void setAppId(String appId) {
+    this.appId = appId;
+  }
+
   public void setWheaterUnit(String wheaterUnit) {
     this.wheaterUnit = wheaterUnit;
+  }
+
+  public String getWheaterUnit() {
+    return wheaterUnit;
+  }
+
+  public String getAppId() {
+    return appId;
   }
 
   public void setOkHttpClient(OkHttpClient okHttpClient) {
@@ -167,7 +197,7 @@ public final class YahooWheaterClient {
       String primaryWoeid = null;
       Map<String, String> alternativeWoeids = new HashMap<>();
       try {
-        XmlPullParser xpp = pullParserFactory.newPullParser();
+        XmlPullParser xpp = DEFAULT_PULL_PARSER.newPullParser();
         xpp.setInput(new StringReader(content));
         boolean inWoe = false;
         boolean inTown = false;
@@ -235,7 +265,7 @@ public final class YahooWheaterClient {
       String content = strings[0];
       WheaterData data = new WheaterData();
       try {
-        XmlPullParser xpp = pullParserFactory.newPullParser();
+        XmlPullParser xpp = DEFAULT_PULL_PARSER.newPullParser();
         xpp.setInput(new StringReader(content));
         boolean hasTodayForecast = false;
         int eventType = xpp.getEventType();
