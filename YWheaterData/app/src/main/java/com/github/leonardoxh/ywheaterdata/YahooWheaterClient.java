@@ -55,15 +55,16 @@ public final class YahooWheaterClient {
 
   private char wheaterUnit = WHEATER_UNIT_CELCIUS;
   private OkHttpClient okHttpClient = defaultOkHttpClient();
-  private String appId;
-  private final Callbacks callbacks;
+  private static String appId;
+  private Callbacks callbacks;
 
-  public YahooWheaterClient(String appId, Callbacks callback) {
-    this.callbacks = callback;
-    this.appId = appId;
+  public YahooWheaterClient() { }
+
+  public YahooWheaterClient(String appId) {
+    YahooWheaterClient.appId = appId;
   }
 
-  public YahooWheaterClient(Context context, Callbacks callbacks) {
+  public YahooWheaterClient(Context context) {
     try {
       ApplicationInfo ai = context.getPackageManager()
           .getApplicationInfo(context.getPackageName(), PackageManager.GET_META_DATA);
@@ -71,14 +72,17 @@ public final class YahooWheaterClient {
       if(TextUtils.isEmpty(appId)) {
         throw new RuntimeException("API Key == null");
       }
-      this.callbacks = callbacks;
     } catch(PackageManager.NameNotFoundException e) {
       throw new RuntimeException("Package name not found, are the app installed?", e);
     }
   }
 
+  public static void init(Context context) {
+    new YahooWheaterClient(context);
+  }
+
   public void setAppId(String appId) {
-    this.appId = appId;
+    YahooWheaterClient.appId = appId;
   }
 
   public void setWheaterUnit(char wheaterUnit) {
@@ -136,7 +140,8 @@ public final class YahooWheaterClient {
     return sb.toString();
   }
 
-  public void locationInfoForLocation(Location location) {
+  public void locationInfoForLocation(Location location, Callbacks callbacks) {
+    this.callbacks = callbacks;
     Request.Builder request = new Request.Builder();
     request.url(buildUrl(appId, location));
     okHttpClient.newCall(request.get().build()).enqueue(new OnLocationResponseListener());
@@ -178,7 +183,7 @@ public final class YahooWheaterClient {
 
   static class LocationInfo {
 
-    List<String> woeids = new ArrayList<>();
+    List<String> woeids = new ArrayList<>(); //TODO - Find the best woeid ?
     String town;
 
   }
@@ -247,7 +252,7 @@ public final class YahooWheaterClient {
       if (locationInfo == null) {
         callbacks.locationInfoError();
       } else {
-        callbacks.locationInfoReceived(locationInfo);
+        callbacks.locationInfoReceived(locationInfo); //TODO - continue the request
       }
     }
 
