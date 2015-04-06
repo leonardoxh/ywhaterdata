@@ -43,8 +43,8 @@ import java.util.concurrent.Executors;
 
 public final class YahooWheaterClient {
 
-  public static final String WHEATER_UNIT_CELCIUS = "c";
-  public static final String WHEATER_UNIT_FAREINHART = "f";
+  public static final char WHEATER_UNIT_CELCIUS = 'c';
+  public static final char WHEATER_UNIT_FAREINHART = 'f';
 
   private static final long DEFAULT_CONNECTION_TIMEOUT = 20L;
   private static final TimeUnit DEFAULT_CONNECTION_TIMEOUT_UNIT = TimeUnit.SECONDS;
@@ -52,7 +52,7 @@ public final class YahooWheaterClient {
   private static final XmlPullParserFactory DEFAULT_PULL_PARSER = defaultXmlPullParser();
   private static final String WHEATER_METADATA = "com.github.leonardoxh.wheaterdata.YAHOO_API_KEY";
 
-  private String wheaterUnit = WHEATER_UNIT_CELCIUS;
+  private char wheaterUnit = WHEATER_UNIT_CELCIUS;
   private OkHttpClient okHttpClient = defaultOkHttpClient();
   private String appId;
   private final Callbacks callbacks;
@@ -80,11 +80,11 @@ public final class YahooWheaterClient {
     this.appId = appId;
   }
 
-  public void setWheaterUnit(String wheaterUnit) {
+  public void setWheaterUnit(char wheaterUnit) {
     this.wheaterUnit = wheaterUnit;
   }
 
-  public String getWheaterUnit() {
+  public char getWheaterUnit() {
     return wheaterUnit;
   }
 
@@ -119,7 +119,7 @@ public final class YahooWheaterClient {
     okHttpClient.newCall(request.get().build()).enqueue(new OnWoeidResponseListener());
   }
 
-  private static String buildWheaterQueryUrl(String woeid, String wheaterUnit) {
+  private static String buildWheaterQueryUrl(String woeid, char wheaterUnit) {
     return "http://weather.yahooapis.com/forecastrss?w=" + woeid + "&u=" + wheaterUnit;
   }
 

@@ -23,7 +23,7 @@ public final class WheaterData {
   private String conditionText;
   private String forecastText;
   private String location;
-  private String wheaterUnit;
+  private char wheaterUnit;
   private int low = INVALID_TEMPERATURE;
   private int high = INVALID_TEMPERATURE;
   private int temperature = INVALID_TEMPERATURE;
@@ -62,7 +62,7 @@ public final class WheaterData {
     this.low = low;
   }
 
-  public void setWheaterUnit(String wheaterUnit) {
+  public void setWheaterUnit(char wheaterUnit) {
     this.wheaterUnit = wheaterUnit;
   }
 
@@ -98,7 +98,7 @@ public final class WheaterData {
     return todayForecastConditionCode;
   }
 
-  public String getWheaterUnit() {
+  public char getWheaterUnit() {
     return wheaterUnit;
   }
 
