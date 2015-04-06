@@ -85,7 +85,7 @@ public final class YahooWheaterClient {
         throw new RuntimeException("API Key == null");
       }
       return apiKey;
-    } catch(PackageManager.NameNotFoundException e) {
+    } catch (PackageManager.NameNotFoundException e) {
       throw new RuntimeException("Package name not found, are the app installed?", e);
     }
   }
