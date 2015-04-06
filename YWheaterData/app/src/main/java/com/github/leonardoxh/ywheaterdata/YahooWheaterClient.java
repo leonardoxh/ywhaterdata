@@ -39,7 +39,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Executors;
+
+import static java.util.concurrent.Executors.newCachedThreadPool;
 
 public final class YahooWheaterClient {
 
@@ -48,7 +49,7 @@ public final class YahooWheaterClient {
 
   private static final long DEFAULT_CONNECTION_TIMEOUT = 20L;
   private static final TimeUnit DEFAULT_CONNECTION_TIMEOUT_UNIT = TimeUnit.SECONDS;
-  private static final Executor DEFAULT_EXECUTOR = Executors.newCachedThreadPool();
+  private static final Executor DEFAULT_EXECUTOR = newCachedThreadPool();
   private static final XmlPullParserFactory DEFAULT_PULL_PARSER = defaultXmlPullParser();
   private static final String WHEATER_METADATA = "com.github.leonardoxh.wheaterdata.YAHOO_API_KEY";
 
