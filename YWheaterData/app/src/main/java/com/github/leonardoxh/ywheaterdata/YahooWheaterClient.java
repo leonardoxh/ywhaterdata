@@ -25,39 +25,69 @@ import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
 
+import java.util.HashMap;
+import java.util.Map;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.Executors;
 
-public class YahooWheaterClient {
+public final class YahooWheaterClient {
 
-  private final String wheaterUnit;
-  private final XmlPullParserFactory pullParserFactory;
+  public static final String WHEATER_UNIT_CELCIUS = "c";
+  public static final String WHEATER_UNIT_FAREINHART = "f";
+
+  private static final long DEFAULT_CONNECTION_TIMEOUT = 20L;
+  private static final TimeUnit DEFAULT_CONNECTION_TIMEOUT_UNIT = TimeUnit.SECONDS;
+  private static final Executor DEFAULT_EXECUTOR = Executors.newCachedThreadPool();
+
+  private String wheaterUnit = WHEATER_UNIT_CELCIUS;
+  private OkHttpClient okHttpClient = defaultOkHttpClient();
+  private final XmlPullParserFactory pullParserFactory = defaultXmlPullParser();
   private final Callbacks callbacks;
   private final String appId;
 
-  public YahooWheaterClient(String appId, String wheaterUnit, Callbacks callback)
-      throws XmlPullParserException {
-    this.pullParserFactory = XmlPullParserFactory.newInstance();
-    this.pullParserFactory.setNamespaceAware(true);
-    this.wheaterUnit = wheaterUnit;
+  public YahooWheaterClient(String appId, Callbacks callback) {
     this.callbacks = callback;
     this.appId = appId;
   }
 
+  public void setWheaterUnit(String wheaterUnit) {
+    this.wheaterUnit = wheaterUnit;
+  }
+
+  public void setOkHttpClient(OkHttpClient okHttpClient) {
+    this.okHttpClient = okHttpClient;
+  }
+
+  private static XmlPullParserFactory defaultXmlPullParser() {
+    try {
+      XmlPullParserFactory pullParserFactory = XmlPullParserFactory.newInstance();
+      pullParserFactory.setNamespaceAware(true);
+      return pullParserFactory;
+    } catch (XmlPullParserException e) {
+      throw new RuntimeException("Unable to create XMLPullParserFactory", e);
+    }
+  }
+
+  private static OkHttpClient defaultOkHttpClient() {
+    OkHttpClient okHttpClient = new OkHttpClient();
+    okHttpClient.setConnectTimeout(DEFAULT_CONNECTION_TIMEOUT, DEFAULT_CONNECTION_TIMEOUT_UNIT);
+    okHttpClient.setReadTimeout(DEFAULT_CONNECTION_TIMEOUT, DEFAULT_CONNECTION_TIMEOUT_UNIT);
+    return okHttpClient;
+  }
+
   public void wheaterForWoied(String woeid) {
-    OkHttpClient client = new OkHttpClient();
     Request.Builder request = new Request.Builder();
     request.url(buildWheaterQueryUrl(woeid, wheaterUnit));
-    client.newCall(request.get().build()).enqueue(new OnWoeidResponseListener());
+    okHttpClient.newCall(request.get().build()).enqueue(new OnWoeidResponseListener());
   }
 
   private static String buildWheaterQueryUrl(String woeid, String wheaterUnit) {
@@ -77,10 +107,9 @@ public class YahooWheaterClient {
   }
 
   public void locationInfoForLocation(Location location) {
-    OkHttpClient client = new OkHttpClient();
     Request.Builder request = new Request.Builder();
     request.url(buildUrl(appId, location));
-    client.newCall(request.get().build()).enqueue(new OnLocationResponseListener());
+    okHttpClient.newCall(request.get().build()).enqueue(new OnLocationResponseListener());
   }
 
   public void locationInfoForConfig(double latitude, double longitude) {
@@ -98,7 +127,7 @@ public class YahooWheaterClient {
 
     @Override public void onResponse(Response response) throws IOException {
       if (response.isSuccessful()) {
-        new LocationInfoParserTask().executeOnExecutor(Executors.newCachedThreadPool(),
+        new LocationInfoParserTask().executeOnExecutor(DEFAULT_EXECUTOR,
             response.body().string());
       } else {
         callbacks.locationInfoError();
@@ -115,7 +144,7 @@ public class YahooWheaterClient {
 
     @Override public void onResponse(Response response) throws IOException {
       if (response.isSuccessful()) {
-        new WoeidParserTask().executeOnExecutor(Executors.newCachedThreadPool(),
+        new WoeidParserTask().executeOnExecutor(DEFAULT_EXECUTOR,
             response.body().string());
       } else {
         callbacks.wheaterDataError();
@@ -137,7 +166,7 @@ public class YahooWheaterClient {
       String content = strings[0];
       LocationInfo locationInfo = new LocationInfo();
       String primaryWoeid = null;
-      List<Pair<String, String>> alternativeWoeids = new ArrayList<>();
+      Map<String, String> alternativeWoeids = new HashMap<>();
       try {
         XmlPullParser xpp = pullParserFactory.newPullParser();
         xpp.setInput(new StringReader(content));
@@ -162,7 +191,7 @@ public class YahooWheaterClient {
               } else if ("woeid".equals(attrName)) {
                 String woeid = xpp.getAttributeValue(i);
                 if (!TextUtils.isEmpty(woeid)) {
-                  alternativeWoeids.add(new Pair<>(tagName, woeid));
+                  alternativeWoeids.put(tagName, woeid);
                 }
               }
             }
@@ -178,16 +207,8 @@ public class YahooWheaterClient {
         if (!TextUtils.isEmpty(primaryWoeid)) {
           locationInfo.woeids.add(primaryWoeid);
         }
-        Collections.sort(alternativeWoeids, new Comparator<Pair<String, String>>() {
-
-          @Override public int compare(Pair<String, String> pair1,
-              Pair<String, String> pair2) {
-            return pair1.first.compareTo(pair2.first);
-          }
-
-        });
-        for (Pair<String, String> pair : alternativeWoeids) {
-          locationInfo.woeids.add(pair.second);
+        for (Map.Entry<String, String> entry : alternativeWoeids.entrySet()) {
+          locationInfo.woeids.add(entry.getValue());
         }
         if (!locationInfo.woeids.isEmpty()) {
           return locationInfo;
