@@ -27,11 +27,11 @@ import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
 
-import java.net.HttpURLConnection;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
+import java.net.HttpURLConnection;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.concurrent.Executor;
@@ -80,9 +80,11 @@ public final class YahooWheaterClient {
       callbacks.wheaterDataError(locationInfo);
       return;
     }
-    Request.Builder request = new Request.Builder();
-    request.url(buildWheaterQueryUrl(locationInfo.getPrimaryWoeid(), wheaterUnit));
-    okHttpClient.newCall(request.get().build()).enqueue(new OnWoeidResponseListener(locationInfo));
+    Request request = new Request.Builder()
+        .get()
+        .url(buildWheaterQueryUrl(locationInfo.getPrimaryWoeid(), wheaterUnit))
+        .build();
+    okHttpClient.newCall(request).enqueue(new OnWoeidResponseListener(locationInfo));
   }
 
   public void locationInfoForLocation(Location location, Callbacks callbacks) {
