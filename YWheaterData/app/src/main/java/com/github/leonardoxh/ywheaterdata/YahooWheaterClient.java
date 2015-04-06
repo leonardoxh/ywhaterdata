@@ -141,13 +141,6 @@ public final class YahooWheaterClient {
     okHttpClient.newCall(request.get().build()).enqueue(new OnLocationResponseListener());
   }
 
-  public void locationInfoForConfig(double latitude, double longitude) {
-    Location location = new Location("");
-    location.setLatitude(latitude);
-    location.setLongitude(longitude);
-    locationInfoForLocation(location);
-  }
-
   class OnLocationResponseListener implements Callback {
 
     @Override public void onFailure(Request request, IOException e) {
