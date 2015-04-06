@@ -71,7 +71,9 @@ public final class YahooWheaterClient {
   }
 
   public static void init(String appId) {
-    YahooWheaterClient.appId = appId;
+    if(YahooWheaterClient.appId == null) {
+      YahooWheaterClient.appId = appId;
+    }
   }
 
   private static String getAppId(Context context) {
@@ -88,20 +90,12 @@ public final class YahooWheaterClient {
     }
   }
 
-  public void setAppId(String appId) {
-    YahooWheaterClient.appId = appId;
-  }
-
   public void setWheaterUnit(char wheaterUnit) {
     this.wheaterUnit = wheaterUnit;
   }
 
   public char getWheaterUnit() {
     return wheaterUnit;
-  }
-
-  public String getAppId() {
-    return appId;
   }
 
   public void setOkHttpClient(OkHttpClient okHttpClient) {
