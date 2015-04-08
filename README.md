@@ -55,6 +55,16 @@ Curently the library doesn't get your location :| so, you need do this by hand, 
 
 ```
 
+The library is available on Maven Central :D Just add this to your buildscript
+
+Gradle
+---
+```groovy
+  dependencies {
+    compile 'com.github.leonardoxh:ywheaterdata:0.1'
+  }
+```
+
 Licence:
 =================
 ```
