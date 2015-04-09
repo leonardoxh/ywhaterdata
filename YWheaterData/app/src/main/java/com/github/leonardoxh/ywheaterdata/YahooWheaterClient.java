@@ -50,7 +50,7 @@ public final class YahooWheaterClient {
   private char wheaterUnit = WHEATER_UNIT_CELCIUS;
   private OkHttpClient okHttpClient = Utils.defaultOkHttpClient();
   private static String appId;
-  private WheaterCallbacks callbacks;
+  private WeatherCallbacks callbacks;
 
   public YahooWheaterClient(String appId) {
     init(appId);
@@ -81,7 +81,7 @@ public final class YahooWheaterClient {
 
   public void wheaterForWoied(LocationInfo locationInfo) {
     if (TextUtils.isEmpty(locationInfo.getPrimaryWoeid())) {
-      callbacks.wheaterDataError(locationInfo);
+      callbacks.weatherDataError(locationInfo);
       return;
     }
     Request request = new Request.Builder()
@@ -92,7 +92,7 @@ public final class YahooWheaterClient {
         .enqueue(new OnWoeidResponseListener(locationInfo));
   }
 
-  public void locationInfoForLocation(Location location, WheaterCallbacks callbacks) {
+  public void locationInfoForLocation(Location location, WeatherCallbacks callbacks) {
     this.callbacks = callbacks;
     Request request = new Request.Builder()
         .get()
@@ -137,7 +137,7 @@ public final class YahooWheaterClient {
   class OnLocationResponseListener implements Callback {
 
     @Override public void onFailure(Request request, IOException e) {
-      callbacks.wheaterDataError(null);
+      callbacks.weatherDataError(null);
     }
 
     @Override public void onResponse(Response response) throws IOException {
@@ -145,7 +145,7 @@ public final class YahooWheaterClient {
         new LocationInfoParserTask().executeOnExecutor(DEFAULT_EXECUTOR,
             response.body().string());
       } else {
-        callbacks.wheaterDataError(null);
+        callbacks.weatherDataError(null);
       }
     }
 
@@ -160,7 +160,7 @@ public final class YahooWheaterClient {
     }
 
     @Override public void onFailure(Request request, IOException e) {
-      callbacks.wheaterDataError(locationInfo);
+      callbacks.weatherDataError(locationInfo);
     }
 
     @Override public void onResponse(Response response) throws IOException {
@@ -168,7 +168,7 @@ public final class YahooWheaterClient {
         new WoeidParserTask(locationInfo).executeOnExecutor(DEFAULT_EXECUTOR,
             response.body().string());
       } else {
-        callbacks.wheaterDataError(locationInfo);
+        callbacks.weatherDataError(locationInfo);
       }
     }
 
@@ -233,7 +233,7 @@ public final class YahooWheaterClient {
 
     @Override protected void onPostExecute(LocationInfo locationInfo) {
       if (locationInfo == null) {
-        callbacks.wheaterDataError(null);
+        callbacks.weatherDataError(null);
       } else {
         wheaterForWoied(locationInfo);
       }
@@ -241,7 +241,7 @@ public final class YahooWheaterClient {
 
   }
 
-  class WoeidParserTask extends AsyncTask<String, Void, WheaterData> {
+  class WoeidParserTask extends AsyncTask<String, Void, WeatherData> {
 
     final LocationInfo locationInfo;
 
@@ -249,9 +249,9 @@ public final class YahooWheaterClient {
       this.locationInfo = locationInfo;
     }
 
-    @Override protected WheaterData doInBackground(String... strings) {
+    @Override protected WeatherData doInBackground(String... strings) {
       String content = strings[0];
-      WheaterData data = new WheaterData();
+      WeatherData data = new WeatherData();
       try {
         XmlPullParser xpp = DEFAULT_PULL_PARSER.newPullParser();
         xpp.setInput(new StringReader(content));
@@ -313,11 +313,11 @@ public final class YahooWheaterClient {
       return data;
     }
 
-    @Override protected void onPostExecute(WheaterData wheaterData) {
-      if (wheaterData == null) {
-        callbacks.wheaterDataError(locationInfo);
+    @Override protected void onPostExecute(WeatherData weatherData) {
+      if (weatherData == null) {
+        callbacks.weatherDataError(locationInfo);
       } else {
-        callbacks.wheaterDataReceived(locationInfo, wheaterData);
+        callbacks.weatherDataReceived(locationInfo, weatherData);
       }
     }
 
