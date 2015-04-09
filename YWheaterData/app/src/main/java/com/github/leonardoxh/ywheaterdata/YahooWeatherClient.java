@@ -40,14 +40,14 @@ import java.util.concurrent.Executors;
 
 public final class YahooWeatherClient {
 
-  public static final char WHEATER_UNIT_CELCIUS = 'c';
-  public static final char WHEATER_UNIT_FAREINHART = 'f';
+  public static final char WEATHER_UNIT_CELCIUS = 'c';
+  public static final char WEATHER_UNIT_FAREINHART = 'f';
 
   private static final XmlPullParserFactory DEFAULT_PULL_PARSER =
       Utils.defaultXmlPullParser();
   private static final Executor DEFAULT_EXECUTOR = Executors.newCachedThreadPool();
 
-  private char wheaterUnit = WHEATER_UNIT_CELCIUS;
+  private char weatherUnit = WEATHER_UNIT_CELCIUS;
   private OkHttpClient okHttpClient = Utils.defaultOkHttpClient();
   private static String appId;
   private WeatherCallbacks callbacks;
@@ -86,7 +86,7 @@ public final class YahooWeatherClient {
     }
     Request request = new Request.Builder()
         .get()
-        .url(buildWheaterQueryUrl(locationInfo.getPrimaryWoeid(), wheaterUnit))
+        .url(buildWheaterQueryUrl(locationInfo.getPrimaryWoeid(), weatherUnit))
         .build();
     okHttpClient.newCall(request)
         .enqueue(new OnWoeidResponseListener(locationInfo));
@@ -102,12 +102,12 @@ public final class YahooWeatherClient {
         .enqueue(new OnLocationResponseListener());
   }
 
-  public void setWheaterUnit(char wheaterUnit) {
-    this.wheaterUnit = wheaterUnit;
+  public void setWeatherUnit(char weatherUnit) {
+    this.weatherUnit = weatherUnit;
   }
 
-  public char getWheaterUnit() {
-    return wheaterUnit;
+  public char getWeatherUnit() {
+    return weatherUnit;
   }
 
   public void setOkHttpClient(OkHttpClient okHttpClient) {
@@ -309,7 +309,7 @@ public final class YahooWeatherClient {
         e.printStackTrace();
         return null;
       }
-      data.setWeatherUnit(wheaterUnit);
+      data.setWeatherUnit(weatherUnit);
       return data;
     }
 
