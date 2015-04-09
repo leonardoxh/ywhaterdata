@@ -50,7 +50,7 @@ public final class YahooWheaterClient {
   private char wheaterUnit = WHEATER_UNIT_CELCIUS;
   private OkHttpClient okHttpClient = Utils.defaultOkHttpClient();
   private static String appId;
-  private Callbacks callbacks;
+  private WheaterCallbacks callbacks;
 
   public YahooWheaterClient(String appId) {
     init(appId);
@@ -92,7 +92,7 @@ public final class YahooWheaterClient {
         .enqueue(new OnWoeidResponseListener(locationInfo));
   }
 
-  public void locationInfoForLocation(Location location, Callbacks callbacks) {
+  public void locationInfoForLocation(Location location, WheaterCallbacks callbacks) {
     this.callbacks = callbacks;
     Request request = new Request.Builder()
         .get()
@@ -320,13 +320,6 @@ public final class YahooWheaterClient {
         callbacks.wheaterDataReceived(locationInfo, wheaterData);
       }
     }
-
-  }
-
-  public interface Callbacks {
-
-    void wheaterDataReceived(LocationInfo locationInfo, WheaterData data);
-    void wheaterDataError(LocationInfo locationInfo);
 
   }
 
