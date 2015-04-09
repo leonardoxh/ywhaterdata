@@ -1,4 +1,4 @@
-# ywhaterdata
+# Yahoo Weather Data
 Tired of use fuck yahoo XML apis ? This dependency is what you need
 
 I use in my recent apps this two classes to get Yahoo API informations about the locale
