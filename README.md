@@ -17,7 +17,7 @@ Initialize the library on your Application class:
   
     @Override public void onCreate() {
       super.onCreate();
-      YahooWheaterClient.init(YAHOO_API_KEY);
+      YahooWeatherClient.init(YAHOO_API_KEY);
     }
   
   }
@@ -28,9 +28,9 @@ Curently the library doesn't get your location :| so, you need do this by hand, 
 
 ```java
 
-  public class WheaterActivity extends Activity implements YahooWheaterClient.Callbacks {
+  public class WeatherActivity extends Activity implements WeatherCallbacks {
   
-    private YahooWheaterClient wheaterClient = new YahooWheaterClient();
+    private YahooWeatherClient wheaterClient = new YahooWeatherClient();
     
     /* ... */
     
@@ -38,16 +38,16 @@ Curently the library doesn't get your location :| so, you need do this by hand, 
       wheaterClient.locationInfoForLocation(location, this);
     }
     
-    @Override public void wheaterDataReceived(@NotNull LocationInfo locationInfo, @NotNull WheaterData wheaterData) {
-      //Use the WheaterData properties
+    @Override public void wheaterDataReceived(@NotNull LocationInfo locationInfo, @NotNull WeatherData weaterData) {
+      //Use the WeatherData properties
     }
     
-    @Override public void wheaterDataError(@Nullable LocationInfo location) {
+    @Override public void weatherDataError(@Nullable LocationInfo location) {
       //If the location info is null it's an error
       //If the location info is non null the principal woeid was not found so retry with an alternative woeid
       if (location != null && !location.getWoeids().isEmpty()) {
         //Use one of the alternatives woeids
-        wheaterClient.wheaterForWoied(location.getWoeids().get(0));
+        wheaterClient.weatherForWoied(location.getWoeids().get(0));
       }
     }
   
