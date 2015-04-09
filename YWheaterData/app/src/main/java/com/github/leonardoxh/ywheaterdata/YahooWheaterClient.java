@@ -21,8 +21,8 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.text.TextUtils;
-
 import android.util.Log;
+
 import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
@@ -77,6 +77,9 @@ public final class YahooWheaterClient {
   }
 
   public static void init(String appId) {
+    if(TextUtils.isEmpty(appId)) {
+      throw new IllegalArgumentException("Init with a null or empty appId");
+    }
     if(YahooWheaterClient.appId == null) {
       YahooWheaterClient.appId = appId;
     }
