@@ -94,14 +94,18 @@ public final class YahooWheaterClient {
         .get()
         .url(buildWheaterQueryUrl(locationInfo.getPrimaryWoeid(), wheaterUnit))
         .build();
-    okHttpClient.newCall(request).enqueue(new OnWoeidResponseListener(locationInfo));
+    okHttpClient.newCall(request)
+        .enqueue(new OnWoeidResponseListener(locationInfo));
   }
 
   public void locationInfoForLocation(Location location, Callbacks callbacks) {
     this.callbacks = callbacks;
-    Request.Builder request = new Request.Builder();
-    request.url(buildUrl(appId, location));
-    okHttpClient.newCall(request.get().build()).enqueue(new OnLocationResponseListener());
+    Request request = new Request.Builder()
+        .get()
+        .url(buildUrl(appId, location))
+        .build();
+    okHttpClient.newCall(request)
+        .enqueue(new OnLocationResponseListener());
   }
 
   public void setWheaterUnit(char wheaterUnit) {
