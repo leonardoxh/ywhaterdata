@@ -10,9 +10,7 @@ android {
 }
 
 dependencies {
-  compile ("com.squareup.okhttp:okhttp:2.3.0") {
-    transitive = true
-  }
+  compile 'com.squareup.okhttp:okhttp:2.3.0'
 }
 
 apply from: '../maven_push.gradle'
