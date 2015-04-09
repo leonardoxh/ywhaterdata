@@ -61,7 +61,7 @@ Gradle
 ---
 ```groovy
   dependencies {
-    compile 'com.github.leonardoxh:ywheaterdata:0.1'
+    compile 'com.github.leonardoxh:ywheaterdata:0.2'
   }
 ```
 
