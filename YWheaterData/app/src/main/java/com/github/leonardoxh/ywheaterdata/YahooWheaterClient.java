@@ -16,8 +16,6 @@
 package com.github.leonardoxh.ywheaterdata;
 
 import android.content.Context;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.text.TextUtils;
@@ -35,26 +33,22 @@ import org.xmlpull.v1.XmlPullParserFactory;
 import java.net.HttpURLConnection;
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.concurrent.Executor;
-import java.util.concurrent.TimeUnit;
 import java.util.HashMap;
 import java.util.Map;
-
-import static java.util.concurrent.Executors.newCachedThreadPool;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 public final class YahooWheaterClient {
 
   public static final char WHEATER_UNIT_CELCIUS = 'c';
   public static final char WHEATER_UNIT_FAREINHART = 'f';
 
-  private static final long DEFAULT_CONNECTION_TIMEOUT = 20L;
-  private static final TimeUnit DEFAULT_CONNECTION_TIMEOUT_UNIT = TimeUnit.SECONDS;
-  private static final Executor DEFAULT_EXECUTOR = newCachedThreadPool();
-  private static final XmlPullParserFactory DEFAULT_PULL_PARSER = defaultXmlPullParser();
-  private static final String WHEATER_METADATA = "com.github.leonardoxh.wheaterdata.YAHOO_API_KEY";
+  private static final XmlPullParserFactory DEFAULT_PULL_PARSER =
+      Utils.defaultXmlPullParser();
+  private static final Executor DEFAULT_EXECUTOR = Executors.newCachedThreadPool();
 
   private char wheaterUnit = WHEATER_UNIT_CELCIUS;
-  private OkHttpClient okHttpClient = defaultOkHttpClient();
+  private OkHttpClient okHttpClient = Utils.defaultOkHttpClient();
   private static String appId;
   private Callbacks callbacks;
 
@@ -73,7 +67,7 @@ public final class YahooWheaterClient {
   }
 
   public static void init(Context context) {
-    init(getAppId(context));
+    init(Utils.getApiKey(context));
   }
 
   public static void init(String appId) {
@@ -122,38 +116,6 @@ public final class YahooWheaterClient {
 
   public void setAppId(String appId) {
     YahooWheaterClient.appId = appId;
-  }
-
-  private static String getAppId(Context context) {
-    try {
-      ApplicationInfo ai = context.getPackageManager()
-          .getApplicationInfo(context.getPackageName(), PackageManager.GET_META_DATA);
-      String apiKey = ai.metaData.getString(WHEATER_METADATA);
-      if(TextUtils.isEmpty(apiKey)) {
-        throw new RuntimeException("API Key == null");
-      }
-      return apiKey;
-    } catch (PackageManager.NameNotFoundException e) {
-      throw new RuntimeException("Package name not found, are the app installed?", e);
-    }
-  }
-
-  private static XmlPullParserFactory defaultXmlPullParser() {
-    try {
-      XmlPullParserFactory pullParserFactory = XmlPullParserFactory.newInstance();
-      pullParserFactory.setNamespaceAware(true);
-      return pullParserFactory;
-    } catch (XmlPullParserException e) {
-      throw new RuntimeException("Unable to create XMLPullParserFactory", e);
-    }
-  }
-
-  private static OkHttpClient defaultOkHttpClient() {
-    OkHttpClient okHttpClient = new OkHttpClient();
-    okHttpClient.setConnectTimeout(DEFAULT_CONNECTION_TIMEOUT, DEFAULT_CONNECTION_TIMEOUT_UNIT);
-    okHttpClient.setReadTimeout(DEFAULT_CONNECTION_TIMEOUT, DEFAULT_CONNECTION_TIMEOUT_UNIT);
-    okHttpClient.setWriteTimeout(DEFAULT_CONNECTION_TIMEOUT, DEFAULT_CONNECTION_TIMEOUT_UNIT);
-    return okHttpClient;
   }
 
   private static String buildWheaterQueryUrl(String woeid, char wheaterUnit) {
