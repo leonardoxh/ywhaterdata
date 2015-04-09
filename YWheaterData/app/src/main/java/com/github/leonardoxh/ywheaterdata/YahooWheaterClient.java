@@ -22,6 +22,7 @@ import android.location.Location;
 import android.os.AsyncTask;
 import android.text.TextUtils;
 
+import android.util.Log;
 import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
@@ -65,6 +66,12 @@ public final class YahooWheaterClient {
     init(context);
   }
 
+  public YahooWheaterClient() {
+    if(appId == null) {
+      Log.w(getClass().getName(), "appId == null maybe you forgot init call?");
+    }
+  }
+
   public static void init(Context context) {
     init(getAppId(context));
   }
@@ -104,6 +111,10 @@ public final class YahooWheaterClient {
 
   public void setOkHttpClient(OkHttpClient okHttpClient) {
     this.okHttpClient = okHttpClient;
+  }
+
+  public void setAppId(String appId) {
+    YahooWheaterClient.appId = appId;
   }
 
   private static String getAppId(Context context) {
