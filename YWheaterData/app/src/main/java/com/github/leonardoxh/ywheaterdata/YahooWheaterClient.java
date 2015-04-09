@@ -152,6 +152,7 @@ public final class YahooWheaterClient {
     OkHttpClient okHttpClient = new OkHttpClient();
     okHttpClient.setConnectTimeout(DEFAULT_CONNECTION_TIMEOUT, DEFAULT_CONNECTION_TIMEOUT_UNIT);
     okHttpClient.setReadTimeout(DEFAULT_CONNECTION_TIMEOUT, DEFAULT_CONNECTION_TIMEOUT_UNIT);
+    okHttpClient.setWriteTimeout(DEFAULT_CONNECTION_TIMEOUT, DEFAULT_CONNECTION_TIMEOUT_UNIT);
     return okHttpClient;
   }
 

@@ -30,39 +30,39 @@ public final class WheaterData {
   private int conditionCode = INVALID_CONDITION;
   private int todayForecastConditionCode = INVALID_CONDITION;
 
-  public void setConditionText(String conditionText) {
+  void setConditionText(String conditionText) {
     this.conditionText = conditionText;
   }
 
-  public void setForecastText(String forecastText) {
+  void setForecastText(String forecastText) {
     this.forecastText = forecastText;
   }
 
-  public void setLocation(String location) {
+  void setLocation(String location) {
     this.location = location;
   }
 
-  public void setTemperature(int temperature) {
+  void setTemperature(int temperature) {
     this.temperature = temperature;
   }
 
-  public void setConditionCode(int conditionCode) {
+  void setConditionCode(int conditionCode) {
     this.conditionCode = conditionCode;
   }
 
-  public void setTodayForecastConditionCode(int todayForecastConditionCode) {
+  void setTodayForecastConditionCode(int todayForecastConditionCode) {
     this.todayForecastConditionCode = todayForecastConditionCode;
   }
 
-  public void setHigh(int high) {
+  void setHigh(int high) {
     this.high = high;
   }
 
-  public void setLow(int low) {
+  void setLow(int low) {
     this.low = low;
   }
 
-  public void setWheaterUnit(char wheaterUnit) {
+  void setWheaterUnit(char wheaterUnit) {
     this.wheaterUnit = wheaterUnit;
   }
 
