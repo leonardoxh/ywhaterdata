@@ -1,3 +1,5 @@
+[![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-ywhaterdata-brightgreen.svg?style=flat)](http://android-arsenal.com/details/1/1784)
+
 # Yahoo Weather Data
 Tired of use fuck yahoo XML apis ? This dependency is what you need
 
